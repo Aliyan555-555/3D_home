@@ -2,20 +2,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as BABYLON from "babylonjs";
 import "babylonjs-loaders";
-import 'babylonjs-gui'
+import "babylonjs-gui";
 
-const BabylonScene = () => {
-  const canvasRef = useRef(null);
-  const engineRef = useRef(null);
-  const sceneRef = useRef(null);
+const BabylonScene: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const engineRef = useRef<BABYLON.Engine | null>(null);
+  const sceneRef = useRef<BABYLON.Scene | null>(null);
   const [currentPoint, setCurrentPoint] = useState(2); // State to keep track of the current navigation point
   const [initialLoading, setInitialLoading] = useState(true); // State to manage initial loading
   const [navigationLoading, setNavigationLoading] = useState(false); // State to manage navigation loading
-  const [placeholderSkybox, setPlaceholderSkybox] = useState(null); // State to manage placeholder skybox
+  const [placeholderSkybox, setPlaceholderSkybox] = useState<BABYLON.Mesh | null>(null); // State to manage placeholder skybox
   const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 0 }); // State to manage camera position for the mini-map
 
-  const createScene = () => {
-    const scene = new BABYLON.Scene(engineRef.current);
+  const createScene = (): BABYLON.Scene => {
+    const scene = new BABYLON.Scene(engineRef.current!);
 
     // Set up the camera for panoramic view
     const camera = new BABYLON.ArcRotateCamera(
@@ -26,13 +26,14 @@ const BabylonScene = () => {
       BABYLON.Vector3.Zero(),
       scene
     );
-    camera.attachControl(canvasRef.current, true);
-    camera.inputs.attached.mousewheel.detachControl(canvasRef.current); // Disable mouse wheel zoom
+    camera.attachControl(canvasRef.current!, true);
+    camera.inputs.attached.mousewheel.detachControl(); // Disable mouse wheel zoom
 
-    // Adjust camera settings for smoother movement
-    camera.inertia = 0.5; // Controls the inertia of the camera movement
-    camera.angularSensibility = 500; // Higher values make the camera less sensitive to mouse movements
-    camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
+  // Adjust camera settings for smoother movement
+camera.inertia = 0.5; // Controls the inertia of the camera movement
+camera.angularSensibilityX = 500; // Controls sensitivity for horizontal movement
+camera.angularSensibilityY = 500; // Controls sensitivity for vertical movement
+camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
 
     // Add ambient light for better illumination
     const ambientLight = new BABYLON.HemisphericLight(
@@ -76,10 +77,10 @@ const BabylonScene = () => {
     return scene;
   };
 
-  const loadPanoramaImages = async (point) => {
+  const loadPanoramaImages = async (point: number): Promise<BABYLON.Mesh> => {
     setNavigationLoading(true); // Set navigation loading to true before starting to load images
     const folderPath = `/images/point${point}/`;
-    const cubeTexture = new BABYLON.CubeTexture(folderPath, sceneRef.current, [
+    const cubeTexture = new BABYLON.CubeTexture(folderPath, sceneRef.current!, [
       "_px.jpg",
       "_nx.jpg",
       "_py.jpg",
@@ -88,7 +89,7 @@ const BabylonScene = () => {
       "_nz.jpg",
     ]);
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       cubeTexture.onLoadObservable.add(() => {
         resolve();
       });
@@ -98,11 +99,11 @@ const BabylonScene = () => {
     const skybox = BABYLON.MeshBuilder.CreateBox(
       "skyBox",
       { size: 1000.0 },
-      sceneRef.current
+      sceneRef.current!
     );
     const skyboxMaterial = new BABYLON.StandardMaterial(
       "skyBox",
-      sceneRef.current
+      sceneRef.current!
     );
     skyboxMaterial.backFaceCulling = false;
     skyboxMaterial.reflectionTexture = cubeTexture;
@@ -122,14 +123,9 @@ const BabylonScene = () => {
 
     return skybox;
   };
-  const manager = new BABYLON.GUI.GUI3DManager(scene);
-  // const button = new BABYLON.GUI.Button3D("teleport");
-    // manager.addControl(button);
-    // button.mesh.material.specularPower = 0
-    // button.mesh.material.diffuseColor.set(0.25, 0.25, 0.25)
 
   useEffect(() => {
-    engineRef.current = new BABYLON.Engine(canvasRef.current, true);
+    engineRef.current = new BABYLON.Engine(canvasRef.current!, true);
     sceneRef.current = createScene();
 
     loadPanoramaImages(currentPoint).then(() => {
@@ -137,16 +133,16 @@ const BabylonScene = () => {
     });
 
     engineRef.current.runRenderLoop(() => {
-      sceneRef.current.render();
+      sceneRef.current!.render();
     });
 
     window.addEventListener("resize", () => {
-      engineRef.current.resize();
+      engineRef.current!.resize();
     });
 
     return () => {
-      window.removeEventListener("resize", () => engineRef.current.resize());
-      engineRef.current.dispose();
+      window.removeEventListener("resize", () => engineRef.current!.resize());
+      engineRef.current!.dispose();
     };
   }, []);
 
@@ -207,101 +203,84 @@ const BabylonScene = () => {
 };
 
 export default BabylonScene;
-// import React, { useEffect, useRef, useState } from "react";
 
-const MiniMap = ({ url, cursor, currentPosition, scale = 1, offsetX = 0, offsetY = 0 }) => {
-  const miniMapRef = useRef(null);
-  const [miniMapStyle, setMiniMapStyle] = useState({ left: "0px", top: "0px", transform: "rotate(0rad)" });
-  const [floor, setFloor] = useState(null); // Store the current floor if applicable
+interface MiniMapProps {
+  url: string;
+  cursor: string;
+  currentPosition: { x: number; z: number };
+  scale?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+interface MiniMapState {
+  transform:string;
+}
 
+const MiniMap: React.FC<MiniMapProps> = ({
+  url,
+  cursor,
+  currentPosition,
+  scale = 1,
+  offsetX = 0,
+  offsetY = 0,
+}) => {
+  const miniMapRef = useRef<HTMLDivElement | null>(null);
+  const [miniMapStyle, setMiniMapStyle] = useState<MiniMapState>({
+    // left: "0px",
+    // top: "0px",
+    transform: "rotate(0rad)",
+  });
+  const [floors, setFloor] = useState<number>(1); // Store the current floor if applicable
   useEffect(() => {
     if (miniMapRef.current) {
-      const { left, top } = calculateMiniMapPosition(currentPosition);
-      setMiniMapStyle({ left, top });
+      const { transform } = calculateMiniMapPosition(currentPosition);
+      setMiniMapStyle({transform:transform });
     }
   }, [currentPosition]);
+  console.log(floors)
 
-  const calculateMiniMapPosition = (position) => {
+  const calculateMiniMapPosition = (position: { x: number; z: number }) => {
     const x = (position.x + offsetX) * scale; // Adjust for offset and scale
     const y = (-position.z + offsetY) * scale; // Invert z for correct orientation
     return {
-     rotate:`${x+y}.rad`
+      // left: `${x}px`,
+      // top: `${y}px`,
+      transform: `rotate(${x + y}rad)`,
     };
   };
 
-  const changeFloor = (newFloor) => {
-    // Handle floor change logic
+  const changeFloor = (newFloor:number) => {
     setFloor(newFloor);
-    // Update background image if necessary
-    // Example: setBackgroundImage(newFloor.minimapUrl)
   };
 
   return (
-    <div id="mini-map" ref={miniMapRef} style={styles.miniMap}>
+    <div
+      ref={miniMapRef}
+      style={{
+        position: "absolute",
+        width: "200px",
+        height: "200px",
+        backgroundImage: `url(${url})`,
+        backgroundSize: "cover",
+        right: "10px",
+bottom: "10px",
+        border: "2px solid #000",
+      }}
+    >
       <div
-        className="mini-map-image"
         style={{
-          ...styles.miniMapImage,
-          backgroundImage: `url(${floor ? floor.minimapUrl : url})`,
+          position: "absolute",
+          width: "40px",
+          height: "40px",
+          backgroundImage: `url(${cursor})`,
+          backgroundSize: "cover",
+          ...miniMapStyle,
         }}
-      >
-        <div
-          className="mini-map-position"
-          style={{
-            ...styles.miniMapPosition,
-            ...miniMapStyle,
-            backgroundImage: `url(${cursor})`,
-          }}
-        />
+      ></div>
+      <div>
+        <button onClick={() => changeFloor(1)}>Floor 1</button>
+        <button onClick={() => changeFloor(2)}>Floor 2</button>
       </div>
-      {floor && (
-        <div className="changeFloorBtnContainer">
-          {/* Render floor change buttons */}
-          {Object.keys(floor).map((key) => (
-            <div
-              key={key}
-              className={`changeFloorBtn ${floor[key].active ? 'active' : ''}`}
-              onClick={() => changeFloor(floor[key])}
-            >
-              {floor[key].label}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
-
-const styles = {
-  miniMap: {
-    position: "fixed",
-    display: "block",
-    bottom: "5px",
-    right: "5px",
-    width: "200px",
-    height: "200px",
-    padding: "10px",
-    backgroundColor: "rgba(0, 0, 0, 0.50)",
-    borderRadius: "0 0 3px 3px",
-    overflow: "hidden",
-  },
-  miniMapImage: {
-    position: "relative",
-    display: "block",
-    width: "200px",
-    height: "200px",
-    backgroundSize: "200px 200px",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "center",
-    cursor: "pointer",
-  },
-  miniMapPosition: {
-    position: "absolute",
-    width: "64px",
-    height: "59px",
-    backgroundPosition: "center",
-    backgroundSize: "64px",
-  },
-};
-
-// export default MiniMap;
