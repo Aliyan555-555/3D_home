@@ -8,17 +8,17 @@
 
 # testing
 /coverage
-/public/point1
-/public/point2
-/public/point3
-/public/point4
-/public/point5
-/public/point6
-/public/point7
-/public/point8
-/public/point9
+# /public/point1
+# /public/point2
+# /public/point3
+# /public/point4
+# /public/point5
+# /public/point6
+# /public/point7
+# /public/point8
+# /public/point9
 # next.js
-# /.next/
+/.next/
 /out/
 
 # production
