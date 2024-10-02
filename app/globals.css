@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.cursor{
+    cursor: url('/images/UI/teleport.png'), auto;
+    /* cursor */
+}
