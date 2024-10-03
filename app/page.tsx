@@ -245,7 +245,7 @@ const MiniMap: React.FC<MiniMapProps> = ({
     return {
       // left: `${x}px`,
       // top: `${y}px`,
-      transform: `rotate(${x + y}rad)`,
+      transform: `rotate(${x}rad)`,
     };
   };
 
