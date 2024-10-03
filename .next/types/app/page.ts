@@ -1,4 +1,4 @@
-// File: D:\3d_home\app\page.tsx
+// File: /workspaces/panorama-view/app/page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
