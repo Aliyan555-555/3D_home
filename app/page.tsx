@@ -12,10 +12,84 @@ const BabylonScene: React.FC = () => {
   const [initialLoading, setInitialLoading] = useState(true); // State to manage initial loading
   const [navigationLoading, setNavigationLoading] = useState(false); // State to manage navigation loading
   const [placeholderSkybox, setPlaceholderSkybox] = useState<BABYLON.Mesh | null>(null); // State to manage placeholder skybox
+  const [footprints,setFootPrints] = useState([])
   const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 0 }); // State to manage camera position for the mini-map
+ 
+  const addFootprints = (scene: BABYLON.Scene) => {
+    const footprintTexture = new BABYLON.Texture("/images/UI/hotspot_goto.png", scene);
+    
+ 
+
+    if (currentPoint === 1){
+   
+
+    }else if (currentPoint === 2){
+     setFootPrints([
+      { position: new BABYLON.Vector3(-460, -300, 0), rotation: 1,size:100 ,point:1},
+      { position: new BABYLON.Vector3(0, -360, 0), rotation:0,size:100,point:2},
+      { position: new BABYLON.Vector3(0, -360, 450), rotation: 0,size:100 ,point:3},
+      { position: new BABYLON.Vector3(10, -180, 460), rotation:0,size:60,point:4 },
+      { position: new BABYLON.Vector3(10, -110, 460), rotation:0,size:30,point:5 }
+
+     ])
+    
+    }else if (currentPoint === 3){
+      setFootPrints([]);
+
+    }else if (currentPoint === 4){
+      setFootPrints([]);
+    }
+    else if (currentPoint === 5){
+       setFootPrints([]);
+    }
+    else if (currentPoint === 6){
+             setFootPrints([])
+
+    }
+    else if (currentPoint === 7){
+             setFootPrints([]);
+
+    }
+    else if (currentPoint === 8){
+             setFootPrints([])
+
+    }
+    else if (currentPoint === 9){
+             setFootPrints([])
+
+    }
+    footprints.forEach((footprint) => {
+      const footprintMesh = BABYLON.MeshBuilder.CreatePlane(
+        "footprint",
+        { size: footprint.size },
+        scene
+      );
+      footprintMesh.position = footprint.position;
+      footprintMesh.rotation.y = footprint.rotation; // Set rotation for each footprint
+      footprintMesh.rotation.x = Math.PI / 2; // Keep footprint horizontal
+  
+      const footprintMaterial = new BABYLON.StandardMaterial("footprintMaterial", scene);
+      footprintMaterial.diffuseTexture = footprintTexture;
+      footprintMaterial.opacityTexture = footprintTexture;
+      footprintMaterial.backFaceCulling = false;
+      footprintMesh.material = footprintMaterial;
+
+      footprintMesh.actionManager = new BABYLON.ActionManager(scene);
+      footprintMesh.actionManager.registerAction(
+        new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, () => {
+          setCurrentPoint(footprint.point);
+        })
+      );
+  
+      // Set the footprint mesh to be fixed in the world space
+      footprintMesh.setParent(null); // Ensure it doesn't move with the camera
+    });
+  };
+  
 
   const createScene = (): BABYLON.Scene => {
     const scene = new BABYLON.Scene(engineRef.current!);
+    addFootprints(scene)
 
     // Set up the camera for panoramic view
     const camera = new BABYLON.ArcRotateCamera(
@@ -73,7 +147,7 @@ camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
       const cameraPosition = camera.position;
       setCameraPosition({ x: cameraPosition.x, z: cameraPosition.z });
     });
-
+   
     return scene;
   };
 
@@ -120,9 +194,11 @@ camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
     }
 
     setNavigationLoading(false); // Set navigation loading to false after images are loaded
-
+  
     return skybox;
   };
+
+
 
   useEffect(() => {
     engineRef.current = new BABYLON.Engine(canvasRef.current!, true);
@@ -237,7 +313,7 @@ const MiniMap: React.FC<MiniMapProps> = ({
       setMiniMapStyle({transform:transform });
     }
   }, [currentPosition]);
-  console.log(floors)
+  // console.log(floors)
 
   const calculateMiniMapPosition = (position: { x: number; z: number }) => {
     const x = (position.x + offsetX) * scale; // Adjust for offset and scale
@@ -245,7 +321,7 @@ const MiniMap: React.FC<MiniMapProps> = ({
     return {
       // left: `${x}px`,
       // top: `${y}px`,
-      transform: `rotate(${x}rad)`,
+      transform: `rotate(${x-4}rad)`,
     };
   };
 
