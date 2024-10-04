@@ -3,71 +3,101 @@ import React, { useEffect, useRef, useState } from "react";
 import * as BABYLON from "babylonjs";
 import "babylonjs-loaders";
 import "babylonjs-gui";
+import Image from 'next/image';
+
+interface FootprintInterface {
+  position: BABYLON.Vector3;
+  rotation: number;
+  size: number;
+  point: number;
+}
 
 const BabylonScene: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<BABYLON.Engine | null>(null);
+  let footprints: BABYLON.Mesh[] = [];
   const sceneRef = useRef<BABYLON.Scene | null>(null);
-  const [currentPoint, setCurrentPoint] = useState(2); // State to keep track of the current navigation point
+  const [currentPoint, setCurrentPoint] = useState(8); // State to keep track of the current navigation point
   const [initialLoading, setInitialLoading] = useState(true); // State to manage initial loading
   const [navigationLoading, setNavigationLoading] = useState(false); // State to manage navigation loading
-  const [placeholderSkybox, setPlaceholderSkybox] = useState<BABYLON.Mesh | null>(null); // State to manage placeholder skybox
-  const [footprints,setFootPrints] = useState([])
   const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 0 }); // State to manage camera position for the mini-map
- 
-  const addFootprints = (scene: BABYLON.Scene) => {
-    const footprintTexture = new BABYLON.Texture("/images/UI/hotspot_goto.png", scene);
-    
- 
+  const footprintData: { [key: number]: FootprintInterface[] } = {
+    1: [
+      { position: new BABYLON.Vector3(0, -300, 0), rotation: 1, size: 100, point: 1 },
+      { position: new BABYLON.Vector3(460, -260, 0), rotation: 0, size: 80, point: 2 },
+      { position: new BABYLON.Vector3(460, -240, 330), rotation: 0, size: 80, point: 3 },
+    ],
+    2: [
+      { position: new BABYLON.Vector3(-460, -300, 0), rotation: 1, size: 100, point: 1 },
+      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 2 },
+      { position: new BABYLON.Vector3(0, -360, 450), rotation: 0, size: 100, point: 3 },
+      { position: new BABYLON.Vector3(10, -180, 460), rotation: 0, size: 60, point: 4 },
+      { position: new BABYLON.Vector3(10, -110, 460), rotation: 0, size: 30, point: 6 },
+    ],
+    3: [
+      { position: new BABYLON.Vector3(-460, -300, -370), rotation: 1, size: 100, point: 1 },
+      { position: new BABYLON.Vector3(0, -360, -450), rotation: 0, size: 100, point: 2 },
+      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 3 },
+      { position: new BABYLON.Vector3(10, -360, 460), rotation: 0, size: 90, point: 4 },
+      { position: new BABYLON.Vector3(10, -160, 460), rotation: 0, size: 50, point: 6 },
+    ],
+    4: [
+      // { position: new BABYLON.Vector3(-460, -300, -370), rotation: 1, size: 100, point: 1 },
+      { position: new BABYLON.Vector3(0, -200, -460), rotation: 0, size: 70, point: 2 },
+      { position: new BABYLON.Vector3(0, -360, -460), rotation: 0, size: 100, point: 3 },
+      { position: new BABYLON.Vector3(10, -360, 0), rotation: 0, size: 90, point: 4 },
+      { position: new BABYLON.Vector3(-410, -360, 0), rotation: 0, size: 90, point: 5 },
+      { position: new BABYLON.Vector3(10, -320, 460), rotation: 0, size: 100, point: 6 },
+    ],
+    5: [
+      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 5 },
+    ],
+    6: [
+      { position: new BABYLON.Vector3(0, -120, -460), rotation: Math.PI, size: 40, point: 2 },
+      { position: new BABYLON.Vector3(0, -180, -460), rotation: Math.PI, size: 70, point: 3 },
+      { position: new BABYLON.Vector3(10, -300, -460), rotation: Math.PI, size: 100, point: 4 },
+      { position: new BABYLON.Vector3(10, -320, 0), rotation: Math.PI, size: 100, point: 6 }, 
+      { position: new BABYLON.Vector3(410, -320, 0), rotation: Math.PI, size: 100, point: 8 }, 
+      { position: new BABYLON.Vector3(-460, -300, -80), rotation: 0, size: 100, point: 7}, 
+    ],
+    7: [
+      { position: new BABYLON.Vector3(0, -320, 0), rotation: 0, size: 100, point: 7 }, 
+      { position: new BABYLON.Vector3(460, -250, 70), rotation: Math.PI, size: 90, point: 6 }, 
+      { position: new BABYLON.Vector3(460, -150, 50), rotation: Math.PI, size: 60, point: 8 }, 
+    ],
 
-    if (currentPoint === 1){
-   
-
-    }else if (currentPoint === 2){
-     setFootPrints([
-      { position: new BABYLON.Vector3(-460, -300, 0), rotation: 1,size:100 ,point:1},
-      { position: new BABYLON.Vector3(0, -360, 0), rotation:0,size:100,point:2},
-      { position: new BABYLON.Vector3(0, -360, 450), rotation: 0,size:100 ,point:3},
-      { position: new BABYLON.Vector3(10, -180, 460), rotation:0,size:60,point:4 },
-      { position: new BABYLON.Vector3(10, -110, 460), rotation:0,size:30,point:5 }
-
-     ])
-    
-    }else if (currentPoint === 3){
-      setFootPrints([]);
-
-    }else if (currentPoint === 4){
-      setFootPrints([]);
-    }
-    else if (currentPoint === 5){
-       setFootPrints([]);
-    }
-    else if (currentPoint === 6){
-             setFootPrints([])
-
-    }
-    else if (currentPoint === 7){
-             setFootPrints([]);
-
-    }
-    else if (currentPoint === 8){
-             setFootPrints([])
-
-    }
-    else if (currentPoint === 9){
-             setFootPrints([])
-
-    }
-    footprints.forEach((footprint) => {
-      const footprintMesh = BABYLON.MeshBuilder.CreatePlane(
-        "footprint",
-        { size: footprint.size },
-        scene
-      );
-      footprintMesh.position = footprint.position;
-      footprintMesh.rotation.y = footprint.rotation; // Set rotation for each footprint
-      footprintMesh.rotation.x = Math.PI / 2; // Keep footprint horizontal
+    8: [
+      { position: new BABYLON.Vector3(0, -360, 0), rotation: Math.PI, size: 100, point: 8 }, 
+      { position: new BABYLON.Vector3(0, -360, -290), rotation: Math.PI, size: 100, point: 9 }, 
+      { position: new BABYLON.Vector3(-460, -440, -10), rotation: Math.PI, size: 100, point: 6 }, 
+      { position: new BABYLON.Vector3(-460, -150, -30), rotation: 0, size: 50, point: 7 }, 
+    ],
+    9: [
+      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 9 }, 
+      { position: new BABYLON.Vector3(0, -360, 340), rotation: 0, size: 100, point: 8 }, 
+    ],
+  };
   
+  const addFootprints = (scene: BABYLON.Scene | undefined, point: number) => {
+    console.log("update point",point)
+    if (!scene) return;
+
+    // Dispose of existing footprints
+    footprints.forEach((mesh) => mesh.dispose());
+    footprints = []; // Clear the footprints array
+    if (footprints.length > 0){
+      footprints = []
+    }
+
+    const footprintsData = footprintData[point] || [];
+    const footprintTexture = new BABYLON.Texture("/images/UI/hotspot_goto.png", scene);
+
+    footprintsData.forEach((footprint) => {
+      const footprintMesh = BABYLON.MeshBuilder.CreatePlane("footprint", { size: footprint.size }, scene);
+      footprintMesh.position = footprint.position;
+      footprintMesh.rotation.y = footprint.rotation;
+      footprintMesh.rotation.x = Math.PI / 2;
+
       const footprintMaterial = new BABYLON.StandardMaterial("footprintMaterial", scene);
       footprintMaterial.diffuseTexture = footprintTexture;
       footprintMaterial.opacityTexture = footprintTexture;
@@ -80,88 +110,70 @@ const BabylonScene: React.FC = () => {
           setCurrentPoint(footprint.point);
         })
       );
-  
-      // Set the footprint mesh to be fixed in the world space
-      footprintMesh.setParent(null); // Ensure it doesn't move with the camera
+
+      footprints.push(footprintMesh); // Add footprint mesh to the array
     });
   };
-  
-
-  const createScene = (): BABYLON.Scene => {
+  const createScene = () => {
     const scene = new BABYLON.Scene(engineRef.current!);
-    addFootprints(scene)
 
-    // Set up the camera for panoramic view
-    const camera = new BABYLON.ArcRotateCamera(
-      "Camera",
-      Math.PI / 2,
-      Math.PI / 2,
-      110,
-      BABYLON.Vector3.Zero(),
-      scene
-    );
+    const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 110, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvasRef.current!, true);
-    camera.inputs.attached.mousewheel.detachControl(); // Disable mouse wheel zoom
+    camera.inputs.attached.mousewheel.detachControl();
 
-  // Adjust camera settings for smoother movement
-camera.inertia = 0.5; // Controls the inertia of the camera movement
-camera.angularSensibilityX = 500; // Controls sensitivity for horizontal movement
-camera.angularSensibilityY = 500; // Controls sensitivity for vertical movement
-camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
+    camera.inertia = 0.5;
+    camera.angularSensibilityX = 400;
+    camera.angularSensibilityY = 400;
+    camera.wheelDeltaPercentage = -1;
 
-    // Add ambient light for better illumination
-    const ambientLight = new BABYLON.HemisphericLight(
-      "ambientLight",
-      new BABYLON.Vector3(0, 1, 0),
-      scene
-    );
-    ambientLight.intensity = 0.5; // Adjust intensity
+    const ambientLight = new BABYLON.HemisphericLight("ambientLight", new BABYLON.Vector3(0, 1, 0), scene);
+    ambientLight.intensity = 0.5;
 
-    // Add directional light
-    const light = new BABYLON.DirectionalLight(
-      "light",
-      new BABYLON.Vector3(0, -1, 0),
-      scene
-    );
+    const light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, -1, 0), scene);
     light.position = new BABYLON.Vector3(0, 10, 0);
-    light.intensity = 1; // Adjust intensity
+    light.intensity = 1;
 
-    // Create a placeholder skybox
-    const placeholderSkybox = BABYLON.MeshBuilder.CreateBox(
-      "placeholderSkyBox",
-      { size: 1000.0 },
-      scene
-    );
-    const placeholderSkyboxMaterial = new BABYLON.StandardMaterial(
-      "placeholderSkyBox",
-      scene
-    );
+    const placeholderSkybox = BABYLON.MeshBuilder.CreateBox("placeholderSkyBox", { size: 1000.0 }, scene);
+    const placeholderSkyboxMaterial = new BABYLON.StandardMaterial("placeholderSkyBox", scene);
     placeholderSkyboxMaterial.backFaceCulling = false;
     placeholderSkyboxMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
     placeholderSkyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     placeholderSkybox.material = placeholderSkyboxMaterial;
-    setPlaceholderSkybox(placeholderSkybox);
 
-    // Update camera position state on camera position change
     scene.registerBeforeRender(() => {
       const cameraPosition = camera.position;
       setCameraPosition({ x: cameraPosition.x, z: cameraPosition.z });
     });
-   
+
+    addFootprints(scene, currentPoint);
     return scene;
   };
 
-  const loadPanoramaImages = async (point: number): Promise<BABYLON.Mesh> => {
-    setNavigationLoading(true); // Set navigation loading to true before starting to load images
-    const folderPath = `/images/point${point}/`;
-    const cubeTexture = new BABYLON.CubeTexture(folderPath, sceneRef.current!, [
-      "_px.jpg",
-      "_nx.jpg",
-      "_py.jpg",
-      "_ny.jpg",
-      "_pz.jpg",
-      "_nz.jpg",
-    ]);
+  const loadPanoramaImages = async (point: number) => {
+    setNavigationLoading(true);
+    const folderPath = `images/point${point}/`;
+
+    const textureUrls = [
+      `${folderPath}_px.jpg`,
+      `${folderPath}_nx.jpg`,
+      `${folderPath}_py.jpg`,
+      `${folderPath}_ny.jpg`,
+      `${folderPath}_pz.jpg`,
+      `${folderPath}_nz.jpg`,
+    ];
+
+    await Promise.all(
+      textureUrls.map(url => {
+        return new Promise<void>((resolve, reject) => {
+          const img = new window.Image(); // Fix for Image
+          img.src = url;
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+        });
+      })
+    );
+
+    const cubeTexture = new BABYLON.CubeTexture(folderPath, sceneRef.current!, ["_px.jpg", "_nx.jpg", "_py.jpg", "_ny.jpg", "_pz.jpg", "_nz.jpg"]);
 
     await new Promise<void>((resolve) => {
       cubeTexture.onLoadObservable.add(() => {
@@ -169,43 +181,27 @@ camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
       });
     });
 
-    // Create a skybox
-    const skybox = BABYLON.MeshBuilder.CreateBox(
-      "skyBox",
-      { size: 1000.0 },
-      sceneRef.current!
-    );
-    const skyboxMaterial = new BABYLON.StandardMaterial(
-      "skyBox",
-      sceneRef.current!
-    );
+    const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, sceneRef.current!);
+    const skyboxMaterial = new BABYLON.StandardMaterial("skyBox", sceneRef.current!);
     skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.reflectionTexture = cubeTexture;
-    skyboxMaterial.reflectionTexture.coordinatesMode =
-      BABYLON.Texture.SKYBOX_MODE;
+    skyboxMaterial.reflectionTexture = await cubeTexture;
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
     skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
     skybox.material = skyboxMaterial;
 
-    // Dispose of the placeholder skybox after the panorama images are loaded
-    if (placeholderSkybox) {
-      placeholderSkybox.dispose();
-      setPlaceholderSkybox(null);
-    }
-
-    setNavigationLoading(false); // Set navigation loading to false after images are loaded
-  
+    setNavigationLoading(false);
     return skybox;
   };
-
-
 
   useEffect(() => {
     engineRef.current = new BABYLON.Engine(canvasRef.current!, true);
     sceneRef.current = createScene();
 
     loadPanoramaImages(currentPoint).then(() => {
-      setInitialLoading(false); // Set initial loading to false after initial images are loaded
+      setInitialLoading(false);
+    }).catch((error) => {
+      console.log(error);
     });
 
     engineRef.current.runRenderLoop(() => {
@@ -220,18 +216,18 @@ camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
       window.removeEventListener("resize", () => engineRef.current!.resize());
       engineRef.current!.dispose();
     };
-  }, []);
+  }, [currentPoint]);
 
   useEffect(() => {
     if (sceneRef.current && !initialLoading) {
-      // Remove the existing skybox
       sceneRef.current.meshes.forEach((mesh) => {
-        if (mesh.name === "skyBox") {
+        if (mesh.name === "skyBox" || mesh.name === "footprint") {
           mesh.dispose();
         }
       });
 
       loadPanoramaImages(currentPoint);
+      addFootprints(sceneRef.current, currentPoint);
     }
   }, [currentPoint]);
 
@@ -240,7 +236,9 @@ camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
       <canvas ref={canvasRef} style={{ width: "100%", height: "100vh" }} />
       {initialLoading && (
         <div className="w-screen h-screen fixed top-0 left-0">
-          <img
+          <Image
+            width={500}
+            height={500}
             className={"w-screen object-cover h-screen"}
             src="/images/UI/splashscreen.jpg"
             alt="splashscreen"
@@ -249,36 +247,34 @@ camera.wheelDeltaPercentage = -1; // Set a smaller value for less sensitivity
       )}
       {navigationLoading && (
         <div
-          className="fixed top-0 flex items-center justify-center left-0 w-screen bg-no-repeat bg-cover h-screen "
-          style={{ backgroundImage: `url(/images/UI/splashscreen.jpg)` }}
-        >
-          <img
-            className="animate-spin"
-            src="/images/UI/loading.png"
-            alt="LOADING"
-          />
-        </div>
-      )}
-      <div style={{ position: "absolute", top: 10, left: 10 }}>
-        {Array.from({ length: 9 }, (_, i) => (
-          <button key={i + 1} onClick={() => setCurrentPoint(i + 1)}>
-            Point {i + 1}
-          </button>
-        ))}
+        className="fixed top-0 flex items-center justify-center left-0 w-screen bg-no-repeat bg-cover h-screen"
+        style={{ backgroundImage: `url(/images/UI/splashscreen.jpg)` }}
+      >
+        <Image
+          width={50}
+          height={50}
+          className="animate-spin"
+          src="/images/UI/loading.png"
+          alt="LOADING"
+        />
       </div>
-      <MiniMap
-        url={`/images/UI/minimap.png`} // Path to your mini-map image
-        cursor="/images/UI/user.png" // Path to your cursor image
-        offsetX={0} // Default offsetX
-        offsetY={0} // Default offsetY
-        scale={1} // Default scale
-        currentPosition={cameraPosition} // Pass current camera position to the mini-map
+      )}
+      {!initialLoading && !navigationLoading && (
+        <MiniMap
+        url={'/images/UI/minimap.png'}
+        cursor="/images/UI/user.png"
+        offsetX={0}
+        offsetY={0}
+        scale={1}
+        currentPosition={cameraPosition}
       />
+      )}
     </div>
   );
 };
 
 export default BabylonScene;
+
 
 interface MiniMapProps {
   url: string;
@@ -306,7 +302,10 @@ const MiniMap: React.FC<MiniMapProps> = ({
     // top: "0px",
     transform: "rotate(0rad)",
   });
-  const [floors, setFloor] = useState<number>(1); // Store the current floor if applicable
+  // console.log(offsetY)
+  // @typescript-eslint/no-unused-vars
+  const [floors, setFloor] = useState<number>(1); 
+  // console.log(offsetY,floors)
   useEffect(() => {
     if (miniMapRef.current) {
       const { transform } = calculateMiniMapPosition(currentPosition);
@@ -316,15 +315,13 @@ const MiniMap: React.FC<MiniMapProps> = ({
   // console.log(floors)
 
   const calculateMiniMapPosition = (position: { x: number; z: number }) => {
-    const x = (position.x + offsetX) * scale; // Adjust for offset and scale
-    const y = (-position.z + offsetY) * scale; // Invert z for correct orientation
+    // Calculate the angle of rotation based on the position
+    const angle = Math.atan2(position.z, position.x); // Use atan2 for correct angle calculation
     return {
-      // left: `${x}px`,
-      // top: `${y}px`,
-      transform: `rotate(${x-4}rad)`,
+      transform: `rotate(${angle}rad)`,
     };
   };
-
+  
   const changeFloor = (newFloor:number) => {
     setFloor(newFloor);
   };

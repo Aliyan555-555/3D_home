@@ -19,6 +19,7 @@
 # /public/point9
 # next.js
 /.next/
+.next/
 /out/
 
 # production
