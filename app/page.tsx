@@ -17,7 +17,7 @@ const BabylonScene: React.FC = () => {
   const engineRef = useRef<BABYLON.Engine | null>(null);
   let footprints: BABYLON.Mesh[] = [];
   const sceneRef = useRef<BABYLON.Scene | null>(null);
-  const [currentPoint, setCurrentPoint] = useState(8); // State to keep track of the current navigation point
+  const [currentPoint, setCurrentPoint] = useState(2); // State to keep track of the current navigation point
   const [initialLoading, setInitialLoading] = useState(true); // State to manage initial loading
   const [navigationLoading, setNavigationLoading] = useState(false); // State to manage navigation loading
   const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 0 }); // State to manage camera position for the mini-map
@@ -77,7 +77,43 @@ const BabylonScene: React.FC = () => {
       { position: new BABYLON.Vector3(0, -360, 340), rotation: 0, size: 100, point: 8 }, 
     ],
   };
-  
+
+    
+ 
+  const moveCameraToFootprint = (footprint: FootprintInterface) => {
+    if (!sceneRef.current) return;
+
+    // Animate the camera to move to the footprint position
+    const camera = sceneRef.current.activeCamera as BABYLON.ArcRotateCamera;
+    
+    // Define the target position based on the footprint
+    const targetPosition = footprint.position.add(new BABYLON.Vector3(0, 10, 0)); // Move slightly above the footprint
+
+    // Create an animation for smooth movement
+    const cameraAnimation = new BABYLON.Animation(
+      "cameraAnimation",
+      "position",
+      30, // Frame rate
+      BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    );
+
+    const keys = [
+      { frame: 0, value: camera.position }, // Starting position
+      { frame: 30, value: targetPosition }, // Target position
+    ];
+
+    cameraAnimation.setKeys(keys);
+    camera.animations.push(cameraAnimation);
+
+    // Start the animation
+    sceneRef.current.beginAnimation(camera, 0, 30, false, 1, () => {
+      // After camera movement is complete, change the point
+      setCurrentPoint(footprint.point);
+    });
+  };
+
+
   const addFootprints = (scene: BABYLON.Scene | undefined, point: number) => {
     console.log("update point",point)
     if (!scene) return;
@@ -108,6 +144,7 @@ const BabylonScene: React.FC = () => {
       footprintMesh.actionManager.registerAction(
         new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, () => {
           setCurrentPoint(footprint.point);
+          moveCameraToFootprint(footprint)
         })
       );
 
@@ -122,8 +159,8 @@ const BabylonScene: React.FC = () => {
     camera.inputs.attached.mousewheel.detachControl();
 
     camera.inertia = 0.5;
-    camera.angularSensibilityX = 400;
-    camera.angularSensibilityY = 400;
+    camera.angularSensibilityX = 300;
+    camera.angularSensibilityY = 300;
     camera.wheelDeltaPercentage = -1;
 
     const ambientLight = new BABYLON.HemisphericLight("ambientLight", new BABYLON.Vector3(0, 1, 0), scene);
@@ -146,6 +183,7 @@ const BabylonScene: React.FC = () => {
     });
 
     addFootprints(scene, currentPoint);
+  
     return scene;
   };
 
@@ -153,25 +191,25 @@ const BabylonScene: React.FC = () => {
     setNavigationLoading(true);
     const folderPath = `images/point${point}/`;
 
-    const textureUrls = [
-      `${folderPath}_px.jpg`,
-      `${folderPath}_nx.jpg`,
-      `${folderPath}_py.jpg`,
-      `${folderPath}_ny.jpg`,
-      `${folderPath}_pz.jpg`,
-      `${folderPath}_nz.jpg`,
-    ];
+    // const textureUrls:string[] = [
+    //   `${folderPath}_px.jpg`,
+    //   `${folderPath}_nx.jpg`,
+    //   `${folderPath}_py.jpg`,
+    //   `${folderPath}_ny.jpg`,
+    //   `${folderPath}_pz.jpg`,
+    //   `${folderPath}_nz.jpg`,
+    // ];
 
-    await Promise.all(
-      textureUrls.map(url => {
-        return new Promise<void>((resolve, reject) => {
-          const img = new window.Image(); // Fix for Image
-          img.src = url;
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-        });
-      })
-    );
+    // await Promise.all(
+    //   textureUrls.map(url => {
+    //     return new Promise<void>((resolve, reject) => {
+    //       const img = new window.Image(); // Fix for Image
+    //       img.src = url;
+    //       img.onload = () => resolve();
+    //       img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+    //     });
+    //   })
+    // );
 
     const cubeTexture = new BABYLON.CubeTexture(folderPath, sceneRef.current!, ["_px.jpg", "_nx.jpg", "_py.jpg", "_ny.jpg", "_pz.jpg", "_nz.jpg"]);
 
@@ -261,11 +299,13 @@ const BabylonScene: React.FC = () => {
       )}
       {!initialLoading && !navigationLoading && (
         <MiniMap
+        setPoint={(data)=>setCurrentPoint(data)}
         url={'/images/UI/minimap.png'}
         cursor="/images/UI/user.png"
         offsetX={0}
         offsetY={0}
         scale={1}
+        point={currentPoint}
         currentPosition={cameraPosition}
       />
       )}
@@ -278,77 +318,136 @@ export default BabylonScene;
 
 interface MiniMapProps {
   url: string;
+  setPoint:(data:number) => void;
   cursor: string;
   currentPosition: { x: number; z: number };
   scale?: number;
   offsetX?: number;
+  point:number;
   offsetY?: number;
 }
 interface MiniMapState {
   transform:string;
 }
+// interface MiniMapProps {
+//   url: string;
+//   cursor: string;
+//   setPoint: (point: number) => void;
+//   currentPosition: { x: number; z: number };
+//   point: number;
+// }
+
+// interface MiniMapState {
+//   transform: string;
+// }
 
 const MiniMap: React.FC<MiniMapProps> = ({
   url,
   cursor,
+  setPoint,
   currentPosition,
-  scale = 1,
-  offsetX = 0,
-  offsetY = 0,
+  point,
 }) => {
   const miniMapRef = useRef<HTMLDivElement | null>(null);
   const [miniMapStyle, setMiniMapStyle] = useState<MiniMapState>({
-    // left: "0px",
-    // top: "0px",
-    transform: "rotate(0rad)",
+    transform: 'rotate(0rad)',
   });
-  // console.log(offsetY)
-  // @typescript-eslint/no-unused-vars
-  const [floors, setFloor] = useState<number>(1); 
-  // console.log(offsetY,floors)
+
   useEffect(() => {
     if (miniMapRef.current) {
       const { transform } = calculateMiniMapPosition(currentPosition);
-      setMiniMapStyle({transform:transform });
+      setMiniMapStyle({ transform: transform });
     }
   }, [currentPosition]);
-  // console.log(floors)
 
   const calculateMiniMapPosition = (position: { x: number; z: number }) => {
     // Calculate the angle of rotation based on the position
     const angle = Math.atan2(position.z, position.x); // Use atan2 for correct angle calculation
+    const adjustedAngle = angle + angle / 2; // Adjust the angle
     return {
-      transform: `rotate(${angle}rad)`,
+      transform: `rotate(${-adjustedAngle}rad)`,
     };
   };
-  
-  const changeFloor = (newFloor:number) => {
-    setFloor(newFloor);
+
+  const UserCurrentPosition = [
+    {
+      top: '100px',
+      left: '100px',
+    },
+    {
+      top: '120px',
+      left: '80px',
+    },
+    {
+      top: '130px',
+      left: '120px',
+    },
+    {
+      top: '90px',
+      left: '120px',
+    },
+    {
+      top: '60px',
+      left: '120px',
+    },
+    {
+      top: '100px',
+      left: 'px',
+    },
+    {
+      top: '60px',
+      left: '100px',
+    },
+    {
+      top: '25px',
+      left: '70px',
+    },
+    {
+      top: '20px',
+      left: '155px',
+    },
+    {
+      top: '50px',
+      left: '155px',
+    },
+  ];
+
+  const changeFloor = (newFloor: number) => {
+    setPoint(newFloor);
   };
 
   return (
     <div
       ref={miniMapRef}
       style={{
-        position: "absolute",
-        width: "200px",
-        height: "200px",
-        backgroundImage: `url(${url})`,
-        backgroundSize: "cover",
-        right: "10px",
-bottom: "10px",
-        border: "2px solid #000",
+        position: 'fixed',
+        width: '220px',
+        height: '220px',
+        backgroundSize: 'cover',
+        right: '10px',
+        bottom: '10px',
       }}
+      className={'p-4 bg-[#0005]'}
     >
+      <Image
+        className={'w-full h-full object-cover'}
+        src={url}
+        alt="MAP"
+        width={100}
+        height={100}
+      />
       <div
         style={{
-          position: "absolute",
-          width: "40px",
-          height: "40px",
+          position: 'absolute',
+          width: '50px',
+          height: '50px',
           backgroundImage: `url(${cursor})`,
-          backgroundSize: "cover",
+          backgroundSize: 'cover',
+          top: UserCurrentPosition[point].top,
+          left: UserCurrentPosition[point].left,
           ...miniMapStyle,
         }}
+        className={`transition-transform duration-500`}
       ></div>
       <div>
         <button onClick={() => changeFloor(1)}>Floor 1</button>
@@ -357,3 +456,4 @@ bottom: "10px",
     </div>
   );
 };
+
