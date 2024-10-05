@@ -143,7 +143,7 @@ const BabylonScene: React.FC = () => {
       footprintMesh.actionManager = new BABYLON.ActionManager(scene);
       footprintMesh.actionManager.registerAction(
         new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, () => {
-          setCurrentPoint(footprint.point);
+          // setCurrentPoint(footprint.point);
           moveCameraToFootprint(footprint)
         })
       );
@@ -153,16 +153,20 @@ const BabylonScene: React.FC = () => {
   };
   const createScene = () => {
     const scene = new BABYLON.Scene(engineRef.current!);
-
     const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 110, BABYLON.Vector3.Zero(), scene);
     camera.attachControl(canvasRef.current!, true);
     camera.inputs.attached.mousewheel.detachControl();
-
-    camera.inertia = 0.5;
-    camera.angularSensibilityX = 300;
-    camera.angularSensibilityY = 300;
-    camera.wheelDeltaPercentage = -1;
-
+    
+    // Adjust inertia for smoother movements
+    camera.inertia = 0.9; // Increase inertia for a more gradual deceleration
+    camera.angularSensibilityX = 500; // Increase sensitivity for slower rotation
+    camera.angularSensibilityY = 500; // Increase sensitivity for slower rotation
+    camera.wheelDeltaPercentage = -1; // Control zoom sensitivity
+    camera.panningSensibility = 1000; // Decrease panning speed for slower movement
+    camera.allowUpsideDown = false; // Prevent camera from flipping upside down
+    camera.lowerRadiusLimit = 10; // Minimum zoom distance
+    camera.upperRadiusLimit = 200; // Maximum zoom distance
+     
     const ambientLight = new BABYLON.HemisphericLight("ambientLight", new BABYLON.Vector3(0, 1, 0), scene);
     ambientLight.intensity = 0.5;
 
@@ -363,7 +367,7 @@ const MiniMap: React.FC<MiniMapProps> = ({
   const calculateMiniMapPosition = (position: { x: number; z: number }) => {
     // Calculate the angle of rotation based on the position
     const angle = Math.atan2(position.z, position.x); // Use atan2 for correct angle calculation
-    const adjustedAngle = angle + angle / 2; // Adjust the angle
+    const adjustedAngle = angle + angle * 2; // Adjust the angle
     return {
       transform: `rotate(${-adjustedAngle}rad)`,
     };
