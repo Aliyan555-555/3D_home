@@ -100,7 +100,7 @@ const BabylonScene: React.FC = () => {
 
     const keys = [
       { frame: 0, value: camera.position }, // Starting position
-      { frame: 30, value: targetPosition }, // Target position
+      { frame: 50, value: targetPosition }, // Target position
     ];
 
     cameraAnimation.setKeys(keys);
@@ -143,7 +143,7 @@ const BabylonScene: React.FC = () => {
       footprintMesh.actionManager = new BABYLON.ActionManager(scene);
       footprintMesh.actionManager.registerAction(
         new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, () => {
-          // setCurrentPoint(footprint.point);
+          setCurrentPoint(footprint.point);
           moveCameraToFootprint(footprint)
         })
       );
@@ -153,7 +153,7 @@ const BabylonScene: React.FC = () => {
   };
   const createScene = () => {
     const scene = new BABYLON.Scene(engineRef.current!);
-    const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 110, BABYLON.Vector3.Zero(), scene);
+    const camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 110,new BABYLON.Vector3(0,0,0), scene);
     camera.attachControl(canvasRef.current!, true);
     camera.inputs.attached.mousewheel.detachControl();
     
@@ -174,7 +174,7 @@ const BabylonScene: React.FC = () => {
     light.position = new BABYLON.Vector3(0, 10, 0);
     light.intensity = 1;
 
-    const placeholderSkybox = BABYLON.MeshBuilder.CreateBox("placeholderSkyBox", { size: 1000.0 }, scene);
+    const placeholderSkybox = BABYLON.MeshBuilder.CreateBox("placeholderSkyBox",  { size: 1000.0 }, scene);
     const placeholderSkyboxMaterial = new BABYLON.StandardMaterial("placeholderSkyBox", scene);
     placeholderSkyboxMaterial.backFaceCulling = false;
     placeholderSkyboxMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
@@ -275,6 +275,9 @@ const BabylonScene: React.FC = () => {
 
   return (
     <div>
+      <div className={"fixed top-10 left-10 bg-white"}>
+        top:{cameraPosition.z} left:{cameraPosition.x}
+        </div>
       <canvas ref={canvasRef} style={{ width: "100%", height: "100vh" }} />
       {initialLoading && (
         <div className="w-screen h-screen fixed top-0 left-0">
