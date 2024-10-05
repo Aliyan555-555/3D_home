@@ -275,9 +275,6 @@ const BabylonScene: React.FC = () => {
 
   return (
     <div>
-      <div className={"fixed top-10 left-10 bg-white"}>
-        top:{cameraPosition.z} left:{cameraPosition.x}
-        </div>
       <canvas ref={canvasRef} style={{ width: "100%", height: "100vh" }} />
       {initialLoading && (
         <div className="w-screen h-screen fixed top-0 left-0">
