@@ -18,7 +18,11 @@
 # /public/point8
 # /public/point9
 # next.js
-/.next/
+app-build-manifest.json
+build-manifest.json
+.next
+
+/.next
 /out/
 
 # production

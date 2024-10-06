@@ -4,92 +4,28 @@ import * as BABYLON from "babylonjs";
 import "babylonjs-loaders";
 import "babylonjs-gui";
 import Image from 'next/image';
-
-interface FootprintInterface {
-  position: BABYLON.Vector3;
-  rotation: number;
-  size: number;
-  point: number;
-}
-
+import MiniMap from '@/src/components/MiniMap';
+import {footPrintDatas} from '@/src/constants';
+import {FootprintInterface} from '@/src/types';
+import Cursor from '@/src/components/Cursor'
 const BabylonScene: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<BABYLON.Engine | null>(null);
   let footprints: BABYLON.Mesh[] = [];
   const sceneRef = useRef<BABYLON.Scene | null>(null);
-  const [currentPoint, setCurrentPoint] = useState(2); // State to keep track of the current navigation point
-  const [initialLoading, setInitialLoading] = useState(true); // State to manage initial loading
-  const [navigationLoading, setNavigationLoading] = useState(false); // State to manage navigation loading
-  const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 0 }); // State to manage camera position for the mini-map
-  const footprintData: { [key: number]: FootprintInterface[] } = {
-    1: [
-      { position: new BABYLON.Vector3(0, -300, 0), rotation: 1, size: 100, point: 1 },
-      { position: new BABYLON.Vector3(460, -260, 0), rotation: 0, size: 80, point: 2 },
-      { position: new BABYLON.Vector3(460, -240, 330), rotation: 0, size: 80, point: 3 },
-    ],
-    2: [
-      { position: new BABYLON.Vector3(-460, -300, 0), rotation: 1, size: 100, point: 1 },
-      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 2 },
-      { position: new BABYLON.Vector3(0, -360, 450), rotation: 0, size: 100, point: 3 },
-      { position: new BABYLON.Vector3(10, -180, 460), rotation: 0, size: 60, point: 4 },
-      { position: new BABYLON.Vector3(10, -110, 460), rotation: 0, size: 30, point: 6 },
-    ],
-    3: [
-      { position: new BABYLON.Vector3(-460, -300, -370), rotation: 1, size: 100, point: 1 },
-      { position: new BABYLON.Vector3(0, -360, -450), rotation: 0, size: 100, point: 2 },
-      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 3 },
-      { position: new BABYLON.Vector3(10, -360, 460), rotation: 0, size: 90, point: 4 },
-      { position: new BABYLON.Vector3(10, -160, 460), rotation: 0, size: 50, point: 6 },
-    ],
-    4: [
-      // { position: new BABYLON.Vector3(-460, -300, -370), rotation: 1, size: 100, point: 1 },
-      { position: new BABYLON.Vector3(0, -200, -460), rotation: 0, size: 70, point: 2 },
-      { position: new BABYLON.Vector3(0, -360, -460), rotation: 0, size: 100, point: 3 },
-      { position: new BABYLON.Vector3(10, -360, 0), rotation: 0, size: 90, point: 4 },
-      { position: new BABYLON.Vector3(-410, -360, 0), rotation: 0, size: 90, point: 5 },
-      { position: new BABYLON.Vector3(10, -320, 460), rotation: 0, size: 100, point: 6 },
-    ],
-    5: [
-      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 5 },
-    ],
-    6: [
-      { position: new BABYLON.Vector3(0, -120, -460), rotation: Math.PI, size: 40, point: 2 },
-      { position: new BABYLON.Vector3(0, -180, -460), rotation: Math.PI, size: 70, point: 3 },
-      { position: new BABYLON.Vector3(10, -300, -460), rotation: Math.PI, size: 100, point: 4 },
-      { position: new BABYLON.Vector3(10, -320, 0), rotation: Math.PI, size: 100, point: 6 }, 
-      { position: new BABYLON.Vector3(410, -320, 0), rotation: Math.PI, size: 100, point: 8 }, 
-      { position: new BABYLON.Vector3(-460, -300, -80), rotation: 0, size: 100, point: 7}, 
-    ],
-    7: [
-      { position: new BABYLON.Vector3(0, -320, 0), rotation: 0, size: 100, point: 7 }, 
-      { position: new BABYLON.Vector3(460, -250, 70), rotation: Math.PI, size: 90, point: 6 }, 
-      { position: new BABYLON.Vector3(460, -150, 50), rotation: Math.PI, size: 60, point: 8 }, 
-    ],
-
-    8: [
-      { position: new BABYLON.Vector3(0, -360, 0), rotation: Math.PI, size: 100, point: 8 }, 
-      { position: new BABYLON.Vector3(0, -360, -290), rotation: Math.PI, size: 100, point: 9 }, 
-      { position: new BABYLON.Vector3(-460, -440, -10), rotation: Math.PI, size: 100, point: 6 }, 
-      { position: new BABYLON.Vector3(-460, -150, -30), rotation: 0, size: 50, point: 7 }, 
-    ],
-    9: [
-      { position: new BABYLON.Vector3(0, -360, 0), rotation: 0, size: 100, point: 9 }, 
-      { position: new BABYLON.Vector3(0, -360, 340), rotation: 0, size: 100, point: 8 }, 
-    ],
-  };
-
+  const [currentPoint, setCurrentPoint] = useState(2); 
+  const [initialLoading, setInitialLoading] = useState(true); 
+  const [navigationLoading, setNavigationLoading] = useState(false); 
+  const [cameraPosition, setCameraPosition] = useState({ x: 0, z: 0 });
+  const footprintData: { [key: number]: FootprintInterface[] } = footPrintDatas;
     
  
   const moveCameraToFootprint = (footprint: FootprintInterface) => {
     if (!sceneRef.current) return;
 
-    // Animate the camera to move to the footprint position
     const camera = sceneRef.current.activeCamera as BABYLON.ArcRotateCamera;
     
-    // Define the target position based on the footprint
-    const targetPosition = footprint.position.add(new BABYLON.Vector3(0, 10, 0)); // Move slightly above the footprint
-
-    // Create an animation for smooth movement
+    const targetPosition = footprint.position.add(new BABYLON.Vector3(0, 10, 0)); 
     const cameraAnimation = new BABYLON.Animation(
       "cameraAnimation",
       "position",
@@ -99,16 +35,15 @@ const BabylonScene: React.FC = () => {
     );
 
     const keys = [
-      { frame: 0, value: camera.position }, // Starting position
-      { frame: 50, value: targetPosition }, // Target position
+      { frame: 0, value: camera.position },
+      { frame: 50, value: targetPosition },
     ];
 
     cameraAnimation.setKeys(keys);
     camera.animations.push(cameraAnimation);
 
-    // Start the animation
+
     sceneRef.current.beginAnimation(camera, 0, 30, false, 1, () => {
-      // After camera movement is complete, change the point
       setCurrentPoint(footprint.point);
     });
   };
@@ -157,10 +92,10 @@ const BabylonScene: React.FC = () => {
     camera.attachControl(canvasRef.current!, true);
     camera.inputs.attached.mousewheel.detachControl();
     
-    // Adjust inertia for smoother movements
-    camera.inertia = 0.9; // Increase inertia for a more gradual deceleration
-    camera.angularSensibilityX = 500; // Increase sensitivity for slower rotation
-    camera.angularSensibilityY = 500; // Increase sensitivity for slower rotation
+ 
+    camera.inertia = 0.9; 
+    camera.angularSensibilityX = 1300; // Increase sensitivity for slower rotation
+    camera.angularSensibilityY = 1300; // Increase sensitivity for slower rotation
     camera.wheelDeltaPercentage = -1; // Control zoom sensitivity
     camera.panningSensibility = 1000; // Decrease panning speed for slower movement
     camera.allowUpsideDown = false; // Prevent camera from flipping upside down
@@ -173,6 +108,37 @@ const BabylonScene: React.FC = () => {
     const light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, -1, 0), scene);
     light.position = new BABYLON.Vector3(0, 10, 0);
     light.intensity = 1;
+// Create the ground mesh
+// const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 500, height: 500 }, scene);
+// ground.position.y = -361; // Set the ground position
+// ground.metadata = { type: "ground" }; // Set metadata for type identification
+
+// // Create a colored material for the ground
+// const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+// groundMaterial.diffuseColor = new BABYLON.Color3(9, 0.5, 0.5);
+// ground.material = groundMaterial;
+// ground.visibility = 1; 
+
+
+const wallWidth = 350;  // Set the desired width
+const wallHeight = 150;  // Set the desired height
+
+const wall = BABYLON.MeshBuilder.CreatePlane("wall", { size: wallWidth, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+wall.metadata = { type: "wall" };
+
+const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
+wallMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
+wall.material = wallMaterial;
+
+// Set position
+wall.position.x = 250;
+wall.position.z = 495;
+wall.position.y = -250;
+
+// Scale the wall to the desired height
+wall.scaling.y = wallHeight / wallWidth; // Maintain the aspect ratio
+
+
 
     const placeholderSkybox = BABYLON.MeshBuilder.CreateBox("placeholderSkyBox",  { size: 1000.0 }, scene);
     const placeholderSkyboxMaterial = new BABYLON.StandardMaterial("placeholderSkyBox", scene);
@@ -275,6 +241,7 @@ const BabylonScene: React.FC = () => {
 
   return (
     <div>
+      
       <canvas ref={canvasRef} style={{ width: "100%", height: "100vh" }} />
       {initialLoading && (
         <div className="w-screen h-screen fixed top-0 left-0">
@@ -313,151 +280,11 @@ const BabylonScene: React.FC = () => {
         currentPosition={cameraPosition}
       />
       )}
+        <Cursor scene={sceneRef.current} camera={sceneRef.current?.activeCamera as BABYLON.ArcRotateCamera} />
     </div>
   );
 };
 
 export default BabylonScene;
 
-
-interface MiniMapProps {
-  url: string;
-  setPoint:(data:number) => void;
-  cursor: string;
-  currentPosition: { x: number; z: number };
-  scale?: number;
-  offsetX?: number;
-  point:number;
-  offsetY?: number;
-}
-interface MiniMapState {
-  transform:string;
-}
-// interface MiniMapProps {
-//   url: string;
-//   cursor: string;
-//   setPoint: (point: number) => void;
-//   currentPosition: { x: number; z: number };
-//   point: number;
-// }
-
-// interface MiniMapState {
-//   transform: string;
-// }
-
-const MiniMap: React.FC<MiniMapProps> = ({
-  url,
-  cursor,
-  setPoint,
-  currentPosition,
-  point,
-}) => {
-  const miniMapRef = useRef<HTMLDivElement | null>(null);
-  const [miniMapStyle, setMiniMapStyle] = useState<MiniMapState>({
-    transform: 'rotate(0rad)',
-  });
-
-  useEffect(() => {
-    if (miniMapRef.current) {
-      const { transform } = calculateMiniMapPosition(currentPosition);
-      setMiniMapStyle({ transform: transform });
-    }
-  }, [currentPosition]);
-
-  const calculateMiniMapPosition = (position: { x: number; z: number }) => {
-    // Calculate the angle of rotation based on the position
-    const angle = Math.atan2(position.z, position.x); // Use atan2 for correct angle calculation
-    const adjustedAngle = angle + angle * 2; // Adjust the angle
-    return {
-      transform: `rotate(${-adjustedAngle}rad)`,
-    };
-  };
-
-  const UserCurrentPosition = [
-    {
-      top: '100px',
-      left: '100px',
-    },
-    {
-      top: '120px',
-      left: '80px',
-    },
-    {
-      top: '130px',
-      left: '120px',
-    },
-    {
-      top: '90px',
-      left: '120px',
-    },
-    {
-      top: '60px',
-      left: '120px',
-    },
-    {
-      top: '100px',
-      left: 'px',
-    },
-    {
-      top: '60px',
-      left: '100px',
-    },
-    {
-      top: '25px',
-      left: '70px',
-    },
-    {
-      top: '20px',
-      left: '155px',
-    },
-    {
-      top: '50px',
-      left: '155px',
-    },
-  ];
-
-  const changeFloor = (newFloor: number) => {
-    setPoint(newFloor);
-  };
-
-  return (
-    <div
-      ref={miniMapRef}
-      style={{
-        position: 'fixed',
-        width: '220px',
-        height: '220px',
-        backgroundSize: 'cover',
-        right: '10px',
-        bottom: '10px',
-      }}
-      className={'p-4 bg-[#0005]'}
-    >
-      <Image
-        className={'w-full h-full object-cover'}
-        src={url}
-        alt="MAP"
-        width={100}
-        height={100}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          width: '50px',
-          height: '50px',
-          backgroundImage: `url(${cursor})`,
-          backgroundSize: 'cover',
-          top: UserCurrentPosition[point].top,
-          left: UserCurrentPosition[point].left,
-          ...miniMapStyle,
-        }}
-        className={`transition-transform duration-500`}
-      ></div>
-      <div>
-        <button onClick={() => changeFloor(1)}>Floor 1</button>
-        <button onClick={() => changeFloor(2)}>Floor 2</button>
-      </div>
-    </div>
-  );
-};
 
