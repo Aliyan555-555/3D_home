@@ -22,9 +22,13 @@ const Cursor: React.FC<{ scene: BABYLON.Scene | null; camera: BABYLON.Camera | n
         cursorMesh.position.copyFrom(pickedInfo.pickedPoint!);
 
         if (pickedMesh.name.includes("Ground")) {
+          const direction = camera.position.subtract(cursorMesh.position);
+          cursorMesh.rotation.y = Math.atan2(direction.x, direction.z);
+          cursorMesh.rotation.x = Math.PI / 2; // Ensure the plane is horizontal
           cursorMesh.position.y += 0.1;
         } else if (pickedMesh.metadata && pickedMesh.metadata.type === "wall") {
           cursorMesh.position.y += 1;
+          const direction = camera.position.subtract(cursorMesh.position);
           cursorMesh.rotation.z = Math.PI / 2;
         } else if (pickedMesh.name.includes("Sofa") || pickedMesh.name.includes("Table")) {
           cursorMesh.position.y += 0.3;
@@ -54,9 +58,7 @@ const Cursor: React.FC<{ scene: BABYLON.Scene | null; camera: BABYLON.Camera | n
 
     const rotateCursor = () => {
       if (camera && cursorMesh) {
-        const direction = camera.position.subtract(cursorMesh.position);
-        cursorMesh.rotation.y = Math.atan2(direction.x, direction.z);
-        cursorMesh.rotation.x = Math.PI / 2; // Ensure the plane is horizontal
+       
       }
     };
 
