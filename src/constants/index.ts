@@ -101,3 +101,16 @@ export const UserCurrentPosition = [
       { position: new BABYLON.Vector3(0, -360, 340), rotation: 0, size: 100, point: 8 }, 
     ],
   };
+
+
+export const Prototype = [
+  {
+    width:360,
+    height:150,
+    type:'wall',
+    x:0,
+    y:0,
+    z:0,
+    point:1, 
+  }
+]

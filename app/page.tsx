@@ -108,35 +108,20 @@ const BabylonScene: React.FC = () => {
     const light = new BABYLON.DirectionalLight("light", new BABYLON.Vector3(0, -1, 0), scene);
     light.position = new BABYLON.Vector3(0, 10, 0);
     light.intensity = 1;
-// Create the ground mesh
-// const ground = BABYLON.MeshBuilder.CreateGround("ground1", { width: 500, height: 500 }, scene);
-// ground.position.y = -361; // Set the ground position
-// ground.metadata = { type: "ground" }; // Set metadata for type identification
-
-// // Create a colored material for the ground
-// const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-// groundMaterial.diffuseColor = new BABYLON.Color3(9, 0.5, 0.5);
-// ground.material = groundMaterial;
-// ground.visibility = 1; 
 
 
-const wallWidth = 350;  // Set the desired width
+const wallWidth = 360;  // Set the desired width
 const wallHeight = 150;  // Set the desired height
 
 const wall = BABYLON.MeshBuilder.CreatePlane("wall", { size: wallWidth, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
 wall.metadata = { type: "wall" };
-
 const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
 wallMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
 wall.material = wallMaterial;
-
-// Set position
-wall.position.x = 250;
+wall.position.x = 300;
 wall.position.z = 495;
-wall.position.y = -250;
-
-// Scale the wall to the desired height
-wall.scaling.y = wallHeight / wallWidth; // Maintain the aspect ratio
+wall.position.y = -230;
+wall.scaling.y = wallHeight / wallWidth;
 
 
 
