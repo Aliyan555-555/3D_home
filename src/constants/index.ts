@@ -105,12 +105,39 @@ export const UserCurrentPosition = [
 
 export const Prototype = [
   {
-    width:360,
+    width:470,
     height:150,
     type:'wall',
-    x:0,
-    y:0,
-    z:0,
-    point:1, 
-  }
+    x:360,
+    y:-220,
+    z:498,
+    point:2, 
+  },
+  {
+    width:470,
+    height:130,
+    type:'wall',
+    x:360,
+    y:60,
+    z:498,
+    point:2, 
+  },
+  {
+    width:110,
+    height:150,
+    type:'wall',
+    x:180,
+    y:-80,
+    z:498,
+    point:2, 
+  },
+  {
+    width:380,
+    height:280,
+    type:'ground',
+    x:300,
+    y:-290,
+    z:538,
+    point:2, 
+  },
 ]

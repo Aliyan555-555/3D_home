@@ -6,6 +6,7 @@ import "babylonjs-gui";
 import Image from 'next/image';
 import MiniMap from '@/src/components/MiniMap';
 import {footPrintDatas} from '@/src/constants';
+import {Prototype} from '@/src/constants'
 import {FootprintInterface} from '@/src/types';
 import Cursor from '@/src/components/Cursor'
 const BabylonScene: React.FC = () => {
@@ -110,18 +111,37 @@ const BabylonScene: React.FC = () => {
     light.intensity = 1;
 
 
-const wallWidth = 360;  // Set the desired width
-const wallHeight = 150;  // Set the desired height
-
-const wall = BABYLON.MeshBuilder.CreatePlane("wall", { size: wallWidth, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
-wall.metadata = { type: "wall" };
-const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
-wallMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
-wall.material = wallMaterial;
-wall.position.x = 300;
-wall.position.z = 495;
-wall.position.y = -230;
-wall.scaling.y = wallHeight / wallWidth;
+    Prototype.map((item) => {
+      if (item.point === currentPoint) {
+          if (item.type === 'wall') {
+              const wallWidth = item.width;
+              const wallHeight = item.height;
+  
+              const wall = BABYLON.MeshBuilder.CreatePlane(item.type, { size: wallWidth, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+              wall.metadata = { type: item.type };
+              const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
+              wallMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
+              wall.material = wallMaterial;
+              wall.position.x = item.x;
+              wall.position.z = item.z;
+              wall.position.y = item.y;
+              wall.scaling.y = wallHeight / wallWidth;
+          } else if (item.type === 'ground') {
+              const groundWidth = item.width;
+              const groundHeight = item.height;
+  
+              const ground = BABYLON.MeshBuilder.CreateGround(item.type, { width: groundWidth, height: groundHeight }, scene);
+              ground.metadata = { type: item.type };
+              const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+              groundMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
+              ground.material = groundMaterial;
+              ground.position.x = item.x;
+              ground.position.z = item.z;
+              ground.position.y = item.y;
+          }
+      }
+  });
+  
 
 
 
